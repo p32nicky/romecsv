@@ -73,7 +73,10 @@ CREATE INDEX IF NOT EXISTS idx_slug ON tours(slug);
 
 def init_db(db_path: str) -> None:
     if not USE_POSTGRES:
-        os.makedirs(os.path.dirname(db_path), exist_ok=True)
+        try:
+            os.makedirs(os.path.dirname(db_path), exist_ok=True)
+        except OSError:
+            pass
     with _get_conn(db_path) as conn:
         sql = _CREATE_PG if USE_POSTGRES else _CREATE_SQLITE
         for stmt in sql.strip().split(";"):
