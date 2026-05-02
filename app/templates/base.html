@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="p:domain_verify" content="43247123c59848f20c224cb158d6d10c"/>
+  <title>{% block title %}{{ site_title }}{% endblock %}</title>
+  <link rel="alternate" type="application/rss+xml" title="{{ site_title }}" href="/feed.xml"/>
+  <link rel="stylesheet" href="/static/style.css"/>
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <a class="logo" href="/">🏛️ {{ site_title }}</a>
+      <nav>
+        <a href="/feed.xml" class="btn-rss">RSS Feed</a>
+        <form method="get" action="/" class="search-form">
+          <input type="text" name="q" placeholder="Search tours…" value="{{ query|default('') }}"/>
+          <button type="submit">Search</button>
+        </form>
+      </nav>
+    </div>
+  </header>
+  <main>{% block content %}{% endblock %}</main>
+  <footer>
+    <p>Tours sourced from <a href="https://www.viator.com" target="_blank" rel="nofollow">Viator</a>. Affiliate links — we may earn a commission.</p>
+  </footer>
+</body>
+</html>

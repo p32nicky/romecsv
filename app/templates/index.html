@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="toolbar">
+  <p class="count">{{ total }} Rome tours & experiences</p>
+</div>
+
+{% if tours %}
+<div class="grid">
+  {% for t in tours %}
+  <a href="/tour/{{ t.slug }}" class="card">
+    {% if t.image_url %}
+    <img src="{{ t.image_url }}" alt="{{ t.title }}" loading="lazy"/>
+    {% else %}
+    <div class="no-img">🏛️</div>
+    {% endif %}
+    <div class="card-body">
+      <h3>{{ t.title[:70] }}{% if t.title|length > 70 %}…{% endif %}</h3>
+      <span class="cta">Book now →</span>
+    </div>
+  </a>
+  {% endfor %}
+</div>
+
+<div class="pagination">
+  {% if page > 1 %}<a href="/?page={{ page - 1 }}&q={{ query }}">&laquo; Prev</a>{% endif %}
+  <span>Page {{ page }} / {{ total_pages }}</span>
+  {% if page < total_pages %}<a href="/?page={{ page + 1 }}&q={{ query }}">Next &raquo;</a>{% endif %}
+</div>
+{% else %}
+<div class="empty"><p>No tours found.</p></div>
+{% endif %}
+{% endblock %}

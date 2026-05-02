@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}{{ t.title }} — {{ site_title }}{% endblock %}
+{% block content %}
+<div class="product-page">
+  <div class="product-img-wrap">
+    {% if t.image_url %}
+    <img src="{{ t.image_url }}" alt="{{ t.title }}"/>
+    {% endif %}
+  </div>
+  <div class="product-info">
+    <span class="badge">Rome Experience</span>
+    <h1>{{ t.title }}</h1>
+    {% if t.description %}
+    <p class="desc">{{ t.description }}</p>
+    {% endif %}
+    {% if t.keywords %}
+    <p class="keywords">🏷️ {{ t.keywords }}</p>
+    {% endif %}
+    <a href="{{ t.link }}" class="btn-buy" target="_blank" rel="nofollow noopener">
+      Book on Viator →
+    </a>
+    <p class="affiliate-note">Affiliate link — we may earn a commission at no extra cost to you.</p>
+  </div>
+</div>
+<a href="/" class="back-link">← Back to all tours</a>
+{% endblock %}
