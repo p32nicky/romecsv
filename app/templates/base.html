@@ -7,6 +7,14 @@
   <title>{% block title %}{{ site_title }}{% endblock %}</title>
   <link rel="alternate" type="application/rss+xml" title="{{ site_title }}" href="/feed.xml"/>
   <link rel="stylesheet" href="/static/style.css"/>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-E21P82JS1B"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-E21P82JS1B');
+  </script>
 </head>
 <body>
   <header>
