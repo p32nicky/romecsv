@@ -159,10 +159,13 @@ def list_tours(db_path: str, query: str = "", page: int = 1, per_page: int = 24)
     return rows, total
 
 
-def get_latest_tours(db_path: str, limit: int = 10):
+def get_latest_tours(db_path: str, limit: int = 10, offset: int = 0):
     ph = "%s" if USE_POSTGRES else "?"
     with _get_conn(db_path) as conn:
-        return _rows(conn, f"SELECT * FROM tours ORDER BY publish_date DESC LIMIT {ph}", (limit,))
+        total = (_one(conn, "SELECT COUNT(*) as count FROM tours") or {}).get("count", 0) \
+            if USE_POSTGRES else (_one(conn, "SELECT COUNT(*) FROM tours") or [0])[0]
+        safe_offset = offset % total if total else 0
+        return _rows(conn, f"SELECT * FROM tours ORDER BY id LIMIT {ph} OFFSET {ph}", (limit, safe_offset))
 
 
 def get_tour_by_slug(db_path: str, slug: str) -> Optional[dict]:

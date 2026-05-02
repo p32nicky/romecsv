@@ -58,7 +58,9 @@ async def tour_detail(request: Request, slug: str):
 
 @app.get("/feed.xml")
 async def rss_feed():
-    tours = get_latest_tours(settings.db_path, limit=10)
+    day = datetime.now(timezone.utc).timetuple().tm_yday
+    daily_offset = (day - 1) * 10
+    tours = get_latest_tours(settings.db_path, limit=10, offset=daily_offset)
 
     rss = Element("rss", version="2.0")
     rss.set("xmlns:media", "http://search.yahoo.com/mrss/")
