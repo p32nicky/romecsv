@@ -73,12 +73,14 @@ async def rss_feed():
         "%a, %d %b %Y %H:%M:%S +0000"
     )
 
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     for idx, t in enumerate(tours):
         item = SubElement(channel, "item")
         tour_url = f"{settings.site_url}/tour/{t['slug']}"
+        unique_guid = f"{tour_url}?d={today}"
         SubElement(item, "title").text = t["title"]
         SubElement(item, "link").text = tour_url
-        SubElement(item, "guid", isPermaLink="true").text = tour_url
+        SubElement(item, "guid", isPermaLink="false").text = unique_guid
         SubElement(item, "description").text = (
             f"{t['description']}<br/>"
             f'<a href="{t["link"]}">Book on Viator →</a>'
@@ -93,14 +95,9 @@ async def rss_feed():
             media.set("url", t["image_url"])
             media.set("medium", "image")
 
-        # Space pins 2 hours apart
-        try:
-            dt = datetime.fromisoformat(t["publish_date"].replace("Z", "+00:00"))
-            dt = dt + timedelta(hours=idx * 2)
-            pub_date = dt.strftime("%a, %d %b %Y %H:%M:%S +0000")
-        except Exception:
-            pub_date = ""
-        SubElement(item, "pubDate").text = pub_date
+        # Today's date + space pins 2 hours apart
+        dt = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0) + timedelta(hours=idx * 2)
+        SubElement(item, "pubDate").text = dt.strftime("%a, %d %b %Y %H:%M:%S +0000")
 
     xml_str = '<?xml version="1.0" encoding="UTF-8"?>\n' + tostring(rss, encoding="unicode")
     return Response(content=xml_str, media_type="application/rss+xml")
