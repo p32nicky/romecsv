@@ -7,6 +7,5 @@
       "config": { "maxLambdaSize": "50mb", "includeFiles": "app/**" }
     }
   ],
-  "routes": [{ "src": "/(.*)", "dest": "/api/index.py" }],
-  "crons": [{ "path": "/feed.xml", "schedule": "*/5 * * * *" }]
+  "routes": [{ "src": "/(.*)", "dest": "/api/index.py" }]
 }
