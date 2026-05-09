@@ -10,7 +10,7 @@ nav{display:flex;align-items:center;gap:12px;flex:1;justify-content:flex-end;fle
 .search-form button{background:#c0392b;color:#fff}
 .btn-rss{background:#f26522;color:#fff;text-decoration:none}
 main{flex:1;max-width:1200px;margin:0 auto;padding:24px 20px;width:100%}
-.toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.expedia-widget{margin-bottom:28px;border-radius:8px;overflow:hidden}.toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
 .count{color:#666;font-size:.9rem}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:20px}
 .card{background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.08);text-decoration:none;color:inherit;display:flex;flex-direction:column;transition:transform .15s,box-shadow .15s}
