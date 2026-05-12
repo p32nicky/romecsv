@@ -23,9 +23,9 @@ if os.path.exists(env_path):
                 k, v = line.split("=", 1)
                 os.environ.setdefault(k.strip(), v.strip())
 
-XAI_API_KEY = os.environ.get("XAI_API_KEY", "")
-if not XAI_API_KEY:
-    raise SystemExit("ERROR: Set XAI_API_KEY env var first. Get a free key at console.x.ai")
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
+if not GROQ_API_KEY:
+    raise SystemExit("ERROR: Set GROQ_API_KEY env var first. Get a free key at console.groq.com")
 
 from app.config import get_settings
 from app.db import _get_conn, _rows, save_article, USE_POSTGRES
@@ -59,14 +59,23 @@ Requirements:
 - Use <strong> tags to bold key phrases
 - HTML only: <h1> <h2> <p> <strong> <ul> <li> — no <html><head><body> tags"""
 
-    resp = httpx.post(
-        "https://api.x.ai/v1/chat/completions",
-        headers={"Authorization": f"Bearer {XAI_API_KEY}", "content-type": "application/json"},
-        json={"model": "grok-3-mini", "max_tokens": 1800, "messages": [{"role": "user", "content": prompt}]},
-        timeout=60,
-    )
-    if resp.status_code != 200:
-        raise RuntimeError(resp.text[:200])
+    for attempt in range(4):
+        resp = httpx.post(
+            "https://api.groq.com/openai/v1/chat/completions",
+            headers={"Authorization": f"Bearer {GROQ_API_KEY}", "content-type": "application/json"},
+            json={"model": "llama-3.1-8b-instant", "max_tokens": 1800, "messages": [{"role": "user", "content": prompt}]},
+            timeout=60,
+        )
+        if resp.status_code == 429:
+            wait = 15 * (attempt + 1)
+            print(f"  rate limited, waiting {wait}s...")
+            time.sleep(wait)
+            continue
+        if resp.status_code != 200:
+            raise RuntimeError(resp.text[:200])
+        break
+    else:
+        raise RuntimeError("Rate limit after 4 retries")
 
     html = resp.json()["choices"][0]["message"]["content"]
     html += f"""
@@ -105,10 +114,10 @@ def main():
             html = generate(tour)
             save_article(DB, tour["slug"], html)
             ok += 1
-            print(f"[{i+1}/{len(tours)}] ✅ {tour['title'][:60]}")
+            print(f"[{i+1}/{len(tours)}] OK {tour['title'][:60]}")
         except Exception as e:
-            print(f"[{i+1}/{len(tours)}] ❌ {tour['title'][:60]} — {e}")
-        time.sleep(0.5)
+            print(f"[{i+1}/{len(tours)}] FAIL {tour['title'][:60]} -- {e}")
+        time.sleep(6)  # Groq free tier: 12k TPM limit
 
     print(f"\nDone. {ok}/{len(tours)} generated.")
 

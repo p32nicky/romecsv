@@ -87,9 +87,9 @@ Requirements:
 - Conversational but authoritative tone"""
 
     resp = httpx.post(
-        "https://api.x.ai/v1/chat/completions",
+        "https://api.groq.com/openai/v1/chat/completions",
         headers={"Authorization": f"Bearer {api_key}", "content-type": "application/json"},
-        json={"model": "grok-3-mini", "max_tokens": 1800, "messages": [{"role": "user", "content": prompt}]},
+        json={"model": "llama-3.3-70b-versatile", "max_tokens": 1800, "messages": [{"role": "user", "content": prompt}]},
         timeout=55,
     )
     if resp.status_code != 200:
@@ -126,9 +126,9 @@ async def generate_article(slug: str):
     tour = get_tour_by_slug(settings.db_path, slug)
     if not tour:
         return JSONResponse({"error": "not found"}, status_code=404)
-    api_key = os.environ.get("XAI_API_KEY", "")
+    api_key = os.environ.get("GROQ_API_KEY", "")
     if not api_key:
-        return JSONResponse({"error": "XAI_API_KEY not set"}, status_code=500)
+        return JSONResponse({"error": "GROQ_API_KEY not set"}, status_code=500)
     try:
         html = _build_article_html(dict(tour), api_key)
         save_article(settings.db_path, slug, html)
