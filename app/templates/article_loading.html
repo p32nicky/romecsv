@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Generating Article — {{ site_title }}{% endblock %}
+{% block content %}
+<div class="loading-page">
+  <h2>✍️ Generating Article</h2>
+  <p>Writing SEO article for: <strong>{{ t.title }}</strong></p>
+  <div class="spinner"></div>
+  <p id="status-msg">Please wait, this takes 20–40 seconds...</p>
+  <a id="article-link" href="/tour/{{ t.slug }}/article" class="btn-article" style="display:none">📄 View Article →</a>
+</div>
+
+<style>
+.loading-page { max-width: 600px; margin: 4rem auto; text-align: center; padding: 2rem; }
+.loading-page h2 { margin-bottom: 1rem; }
+.loading-page p { color: #555; margin-bottom: 1.5rem; }
+.spinner { width: 50px; height: 50px; border: 5px solid #eee; border-top-color: #8B1A1A; border-radius: 50%; animation: spin 1s linear infinite; margin: 1.5rem auto; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.btn-article { display: inline-block; background: #8B1A1A; color: #fff; padding: 0.7rem 1.5rem; border-radius: 8px; text-decoration: none; font-weight: 600; }
+</style>
+
+<script>
+(async function() {
+  const slug = "{{ t.slug }}";
+  const statusMsg = document.getElementById('status-msg');
+  const link = document.getElementById('article-link');
+  try {
+    const resp = await fetch(`/api/generate-article/${slug}`, { method: 'POST' });
+    const data = await resp.json();
+    if (data.status === 'done') {
+      statusMsg.textContent = '✅ Article ready!';
+      document.querySelector('.spinner').style.display = 'none';
+      link.style.display = 'inline-block';
+    } else {
+      statusMsg.textContent = '❌ Error: ' + (data.error || 'unknown');
+      document.querySelector('.spinner').style.display = 'none';
+    }
+  } catch (e) {
+    statusMsg.textContent = '❌ Error: ' + e.message;
+    document.querySelector('.spinner').style.display = 'none';
+  }
+})();
+</script>
+{% endblock %}

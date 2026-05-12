@@ -172,3 +172,52 @@ def get_tour_by_slug(db_path: str, slug: str) -> Optional[dict]:
     ph = "%s" if USE_POSTGRES else "?"
     with _get_conn(db_path) as conn:
         return _one(conn, f"SELECT * FROM tours WHERE slug={ph}", (slug,))
+
+
+def save_article(db_path: str, slug: str, html: str) -> None:
+    ph = "%s" if USE_POSTGRES else "?"
+    with _get_conn(db_path) as conn:
+        if USE_POSTGRES:
+            conn.cursor().execute("ALTER TABLE tours ADD COLUMN IF NOT EXISTS article_text TEXT")
+            conn.cursor().execute(f"UPDATE tours SET article_text={ph} WHERE slug={ph}", (html, slug))
+        else:
+            try:
+                conn.execute("ALTER TABLE tours ADD COLUMN article_text TEXT")
+            except Exception:
+                pass
+            conn.execute("UPDATE tours SET article_text=? WHERE slug=?", (html, slug))
+
+
+def get_next_unposted_substack(db_path: str, n: int = 5) -> list:
+    ph = "%s" if USE_POSTGRES else "?"
+    with _get_conn(db_path) as conn:
+        if USE_POSTGRES:
+            conn.cursor().execute("ALTER TABLE tours ADD COLUMN IF NOT EXISTS substack_posted_at TEXT")
+            conn.cursor().execute("ALTER TABLE tours ADD COLUMN IF NOT EXISTS article_text TEXT")
+        else:
+            for col in ("article_text TEXT", "substack_posted_at TEXT"):
+                try:
+                    conn.execute(f"ALTER TABLE tours ADD COLUMN {col}")
+                except Exception:
+                    pass
+        limit = ph
+        rows = _rows(conn,
+            f"SELECT * FROM tours WHERE substack_posted_at IS NULL ORDER BY id LIMIT {limit}",
+            (n,))
+        return [dict(r) for r in rows]
+
+
+def mark_substack_posted(db_path: str, slug: str) -> None:
+    ph = "%s" if USE_POSTGRES else "?"
+    from datetime import datetime, timezone
+    now = datetime.now(timezone.utc).isoformat()
+    with _get_conn(db_path) as conn:
+        if USE_POSTGRES:
+            conn.cursor().execute("ALTER TABLE tours ADD COLUMN IF NOT EXISTS substack_posted_at TEXT")
+            conn.cursor().execute(f"UPDATE tours SET substack_posted_at={ph} WHERE slug={ph}", (now, slug))
+        else:
+            try:
+                conn.execute("ALTER TABLE tours ADD COLUMN substack_posted_at TEXT")
+            except Exception:
+                pass
+            conn.execute("UPDATE tours SET substack_posted_at=? WHERE slug=?", (now, slug))

@@ -2,7 +2,7 @@
 Load rome_pinterest_upload_ExploreRome.csv into the database.
 Usage:
   1. Copy .env.example to .env, fill in DATABASE_URL
-  2. Run: .venv\Scripts\python import_csv.py [path/to/csv]
+  2. Run: .venv/Scripts/python import_csv.py [path/to/csv]
 """
 import csv
 import os

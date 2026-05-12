@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}{{ t.title }} — {{ site_title }}{% endblock %}
+{% block content %}
+<div class="article-page">
+  <div class="article-actions">
+    <a href="/tour/{{ t.slug }}" class="back-link">← Back to tour</a>
+    <div class="copy-btns">
+      <button onclick="copyTitle()" class="btn-copy btn-title">① Copy Title</button>
+      <button onclick="copyBody()" class="btn-copy">② Copy Body</button>
+      <button onclick="copyHashtags()" class="btn-copy btn-hash"># Copy Tags</button>
+      <button onclick="regenerate()" class="btn-regen">🔄 Regenerate</button>
+    </div>
+  </div>
+
+  <article id="article-body">
+    {% if t.image_url %}
+    <img src="{{ t.image_url }}" alt="{{ t.title }}" class="article-hero"/>
+    {% endif %}
+    {{ article_html | safe }}
+  </article>
+</div>
+
+<style>
+.article-page { max-width: 780px; margin: 0 auto; padding: 2rem 1rem; }
+.article-hero { width: 100%; border-radius: 12px; margin-bottom: 2rem; max-height: 400px; object-fit: cover; }
+.article-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 0.5rem; }
+.copy-btns { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.btn-copy { background: #8B1A1A; color: #fff; border: none; padding: 0.6rem 1.2rem; border-radius: 6px; cursor: pointer; font-size: 0.9rem; }
+.btn-copy:hover { background: #6d1414; }
+.btn-hash { background: #1da1f2; }
+.btn-hash:hover { background: #0d8ecf; }
+.btn-regen { background: #555; color: #fff; border: none; padding: 0.6rem 1.2rem; border-radius: 6px; cursor: pointer; font-size: 0.9rem; }
+.btn-regen:hover { background: #333; }
+#article-body h1 { font-size: 2rem; margin-bottom: 1rem; line-height: 1.3; }
+#article-body h2 { font-size: 1.4rem; margin: 2rem 0 0.8rem; color: #333; }
+#article-body p { line-height: 1.8; margin-bottom: 1rem; color: #444; }
+#article-body strong { color: #111; }
+#article-body hr { margin: 2rem 0; border: none; border-top: 2px solid #eee; }
+#article-body .hashtags { color: #1da1f2; font-size: 0.9rem; line-height: 1.6; margin-top: 1rem; }
+</style>
+
+<script>
+async function copyTitle() {
+  const h1 = document.querySelector('#article-body h1');
+  const title = h1 ? h1.innerText : "{{ t.title }}";
+  await navigator.clipboard.writeText(title);
+  const btn = document.querySelector('.btn-title');
+  btn.textContent = '✅ Copied!';
+  setTimeout(() => btn.textContent = '① Copy Title', 2000);
+}
+
+async function copyBody() {
+  const body = document.getElementById('article-body');
+  const clone = body.cloneNode(true);
+  const h1 = clone.querySelector('h1');
+  if (h1) h1.remove();
+  const btn = document.querySelector('.btn-copy:not(.btn-title):not(.btn-hash)');
+  try {
+    const item = new ClipboardItem({
+      'text/html': new Blob([clone.innerHTML], { type: 'text/html' }),
+      'text/plain': new Blob([clone.innerText], { type: 'text/plain' }),
+    });
+    await navigator.clipboard.write([item]);
+    btn.textContent = '✅ Copied!';
+  } catch(e) {
+    await navigator.clipboard.writeText(clone.innerText);
+    btn.textContent = '✅ Copied (plain)!';
+  }
+  setTimeout(() => btn.textContent = '② Copy Body', 2000);
+}
+
+async function copyHashtags() {
+  const tags = document.querySelector('#article-body .hashtags');
+  const btn = document.querySelector('.btn-hash');
+  if (!tags) { btn.textContent = '❌ No tags'; setTimeout(() => btn.textContent = '# Copy Tags', 2000); return; }
+  await navigator.clipboard.writeText(tags.innerText);
+  btn.textContent = '✅ Copied!';
+  setTimeout(() => btn.textContent = '# Copy Tags', 2000);
+}
+
+async function regenerate() {
+  const slug = "{{ t.slug }}";
+  const btn = document.querySelector('.btn-regen');
+  btn.textContent = '⏳ Regenerating...';
+  btn.disabled = true;
+  const resp = await fetch(`/api/clear-article/${slug}`, { method: 'POST' });
+  if (resp.ok) {
+    window.location.href = `/tour/${slug}/article`;
+  } else {
+    btn.textContent = '❌ Error';
+    btn.disabled = false;
+  }
+}
+</script>
+{% endblock %}

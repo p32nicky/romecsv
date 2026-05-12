@@ -3,13 +3,14 @@ import os
 from datetime import datetime, timezone, timedelta
 from xml.etree.ElementTree import Element, SubElement, tostring
 
+import httpx
 from fastapi import FastAPI, Request, Query
 from fastapi.responses import HTMLResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from app.config import get_settings
-from app.db import init_db, list_tours, get_latest_tours, get_tour_by_slug
+from app.db import init_db, list_tours, get_latest_tours, get_tour_by_slug, save_article
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -54,6 +55,95 @@ async def tour_detail(request: Request, slug: str):
         "t": tour,
         "site_title": settings.site_title,
     })
+
+
+STOP_WORDS = {"a","an","the","and","or","but","in","on","at","to","for","of","with","from","by","as","is","it","this","that","was","are","be","been","has","have","had","not","its"}
+
+def _build_article_html(tour: dict, api_key: str) -> str:
+    kw = tour.get("keywords", "") or ""
+    raw = [w.strip() for w in kw.split(",") if w.strip()]
+    good = [w.replace(" ", "") for w in raw if w.strip().lower() not in STOP_WORDS and len(w.strip()) > 2]
+    tags = " ".join(f"#{w.title()}" for w in good if w)[:200]
+    if not tags:
+        tags = "#Rome #Italy #Travel #RomeTours #VisitRome #ItalyTravel #Viator #TravelItaly #RomeExperiences #TravelGuide"
+    prompt = f"""Write a highly detailed, SEO-optimised travel article about this Rome tour.
+
+Tour Title: {tour['title']}
+Description: {tour['description']}
+Keywords: {kw}
+
+Requirements:
+- 900-1100 words total
+- Catchy SEO-optimised <h1> title (include keywords like "Rome", "Italy", "best", "2025", etc.)
+- Engaging hook intro paragraph that grabs attention
+- At least 5 <h2> subheadings: overview, highlights, what to expect, tips for visitors, why book this tour
+- Naturally weave in SEO keywords (Rome tours, things to do in Rome, best Rome experiences, etc.)
+- Include specific details about what visitors will see and experience
+- Mention ideal visitor types (families, couples, solo travellers, history buffs, food lovers, etc.)
+- Practical tips section (what to wear, when to arrive, what to bring)
+- Use <strong> tags to bold key phrases and keywords
+- Write in HTML using ONLY <h1> <h2> <p> <strong> <ul> <li> tags
+- Do NOT include <html> <head> <body> tags
+- Conversational but authoritative tone"""
+
+    resp = httpx.post(
+        "https://api.anthropic.com/v1/messages",
+        headers={"x-api-key": api_key, "anthropic-version": "2023-06-01", "content-type": "application/json"},
+        json={"model": "claude-haiku-4-5", "max_tokens": 1800, "messages": [{"role": "user", "content": prompt}]},
+        timeout=55,
+    )
+    if resp.status_code != 200:
+        raise RuntimeError(resp.text[:300])
+    article_html = resp.json()["content"][0]["text"]
+    article_html += f"""
+<hr/>
+<h2>Book This Tour Today</h2>
+<p>Don't miss out! <strong><a href="{tour['link']}" target="_blank" rel="nofollow noopener">Book {tour['title']} on Viator →</a></strong></p>
+<p>Secure your spot now — spaces fill up fast!</p>
+<p class="hashtags">{tags}</p>"""
+    return article_html
+
+
+@app.get("/tour/{slug}/article", response_class=HTMLResponse)
+async def tour_article(request: Request, slug: str):
+    tour = get_tour_by_slug(settings.db_path, slug)
+    if not tour:
+        return HTMLResponse("Tour not found", status_code=404)
+    existing = (dict(tour).get("article_text") or "").strip()
+    if existing:
+        return templates.TemplateResponse("article.html", {
+            "request": request, "t": tour,
+            "article_html": existing,
+            "site_title": settings.site_title,
+        })
+    return templates.TemplateResponse("article_loading.html", {
+        "request": request, "t": tour, "site_title": settings.site_title,
+    })
+
+
+@app.post("/api/generate-article/{slug}")
+async def generate_article(slug: str):
+    tour = get_tour_by_slug(settings.db_path, slug)
+    if not tour:
+        return JSONResponse({"error": "not found"}, status_code=404)
+    api_key = os.environ.get("ANTHROPIC_API_KEY", "")
+    if not api_key:
+        return JSONResponse({"error": "ANTHROPIC_API_KEY not set"}, status_code=500)
+    try:
+        html = _build_article_html(dict(tour), api_key)
+        save_article(settings.db_path, slug, html)
+        return JSONResponse({"status": "done"})
+    except Exception as e:
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+
+@app.post("/api/clear-article/{slug}")
+async def clear_article(slug: str):
+    tour = get_tour_by_slug(settings.db_path, slug)
+    if not tour:
+        return JSONResponse({"error": "not found"}, status_code=404)
+    save_article(settings.db_path, slug, "")
+    return JSONResponse({"status": "cleared"})
 
 
 @app.get("/feed.xml")
