@@ -2,6 +2,7 @@
 __pycache__/
 *.pyc
 data/
+!data/rome.sqlite3
 .env
 .env.local
 
