@@ -18,7 +18,7 @@ from app.db import get_next_unposted_substack, mark_substack_posted, save_articl
 settings = get_settings()
 DB = settings.db_path
 
-PUBLICATION = "nickmdavies.substack.com"
+PUBLICATION = "explorerometours.substack.com"
 API_BASE = f"https://{PUBLICATION}/api/v1"
 BATCH = 5  # posts per run
 
