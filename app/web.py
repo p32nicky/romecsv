@@ -87,14 +87,14 @@ Requirements:
 - Conversational but authoritative tone"""
 
     resp = httpx.post(
-        "https://api.anthropic.com/v1/messages",
-        headers={"x-api-key": api_key, "anthropic-version": "2023-06-01", "content-type": "application/json"},
-        json={"model": "claude-haiku-4-5", "max_tokens": 1800, "messages": [{"role": "user", "content": prompt}]},
+        "https://api.x.ai/v1/chat/completions",
+        headers={"Authorization": f"Bearer {api_key}", "content-type": "application/json"},
+        json={"model": "grok-3-mini", "max_tokens": 1800, "messages": [{"role": "user", "content": prompt}]},
         timeout=55,
     )
     if resp.status_code != 200:
         raise RuntimeError(resp.text[:300])
-    article_html = resp.json()["content"][0]["text"]
+    article_html = resp.json()["choices"][0]["message"]["content"]
     article_html += f"""
 <hr/>
 <h2>Book This Tour Today</h2>
@@ -126,9 +126,9 @@ async def generate_article(slug: str):
     tour = get_tour_by_slug(settings.db_path, slug)
     if not tour:
         return JSONResponse({"error": "not found"}, status_code=404)
-    api_key = os.environ.get("ANTHROPIC_API_KEY", "")
+    api_key = os.environ.get("XAI_API_KEY", "")
     if not api_key:
-        return JSONResponse({"error": "ANTHROPIC_API_KEY not set"}, status_code=500)
+        return JSONResponse({"error": "XAI_API_KEY not set"}, status_code=500)
     try:
         html = _build_article_html(dict(tour), api_key)
         save_article(settings.db_path, slug, html)

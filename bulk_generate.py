@@ -2,8 +2,8 @@
 Bulk generate articles for all Rome tours that don't have one yet.
 Run locally: python bulk_generate.py
 
-Set ANTHROPIC_API_KEY env var before running:
-  $env:ANTHROPIC_API_KEY="sk-ant-..."
+Set XAI_API_KEY env var before running (free at console.x.ai):
+  $env:XAI_API_KEY="xai-..."
   python bulk_generate.py
 
 For Neon Postgres (optional), set DATABASE_URL env var.
@@ -23,9 +23,9 @@ if os.path.exists(env_path):
                 k, v = line.split("=", 1)
                 os.environ.setdefault(k.strip(), v.strip())
 
-ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
-if not ANTHROPIC_API_KEY:
-    raise SystemExit("ERROR: Set ANTHROPIC_API_KEY env var first.")
+XAI_API_KEY = os.environ.get("XAI_API_KEY", "")
+if not XAI_API_KEY:
+    raise SystemExit("ERROR: Set XAI_API_KEY env var first. Get a free key at console.x.ai")
 
 from app.config import get_settings
 from app.db import _get_conn, _rows, save_article, USE_POSTGRES
@@ -60,15 +60,15 @@ Requirements:
 - HTML only: <h1> <h2> <p> <strong> <ul> <li> — no <html><head><body> tags"""
 
     resp = httpx.post(
-        "https://api.anthropic.com/v1/messages",
-        headers={"x-api-key": ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01", "content-type": "application/json"},
-        json={"model": "claude-haiku-4-5", "max_tokens": 1800, "messages": [{"role": "user", "content": prompt}]},
+        "https://api.x.ai/v1/chat/completions",
+        headers={"Authorization": f"Bearer {XAI_API_KEY}", "content-type": "application/json"},
+        json={"model": "grok-3-mini", "max_tokens": 1800, "messages": [{"role": "user", "content": prompt}]},
         timeout=60,
     )
     if resp.status_code != 200:
         raise RuntimeError(resp.text[:200])
 
-    html = resp.json()["content"][0]["text"]
+    html = resp.json()["choices"][0]["message"]["content"]
     html += f"""
 <hr/>
 <h2>Book This Tour Today</h2>
