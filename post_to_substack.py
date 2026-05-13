@@ -210,9 +210,9 @@ def main():
         if "url" in result:
             mark_substack_posted(DB, tour["slug"])
             posted += 1
-            print(f"  ✅ {result['url']}")
+            print(f"  OK {result['url']}")
         else:
-            print(f"  ❌ {result['error']}")
+            print(f"  FAIL {result['error']}")
         time.sleep(3)
 
     remaining = get_next_unposted_substack(DB, 9999)
