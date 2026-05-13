@@ -63,10 +63,13 @@ Requirements:
         resp = httpx.post(
             "https://api.groq.com/openai/v1/chat/completions",
             headers={"Authorization": f"Bearer {GROQ_API_KEY}", "content-type": "application/json"},
-            json={"model": "llama-3.1-8b-instant", "max_tokens": 1800, "messages": [{"role": "user", "content": prompt}]},
+            json={"model": "llama-3.1-8b-instant", "max_tokens": 1000, "messages": [{"role": "user", "content": prompt}]},
             timeout=60,
         )
         if resp.status_code == 429:
+            err = resp.text
+            if "tokens per day" in err or "TPD" in err:
+                raise SystemExit("DAILY_LIMIT_HIT")
             wait = 15 * (attempt + 1)
             print(f"  rate limited, waiting {wait}s...")
             time.sleep(wait)
