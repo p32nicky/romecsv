@@ -32,6 +32,6 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/rome.sqlite3
+          git add -f data/rome.sqlite3
           git diff --cached --quiet || git commit -m "chore: generated articles [skip ci]"
           git push
