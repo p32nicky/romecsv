@@ -193,6 +193,20 @@ async def rss_feed():
     return Response(content=xml_str, media_type="application/rss+xml")
 
 
+@app.get("/sitemap.xml")
+async def sitemap():
+    from app.db import _get_conn
+    with _get_conn(settings.db_path) as conn:
+        slugs = [r[0] for r in conn.execute("SELECT slug FROM tours ORDER BY first_seen_at DESC").fetchall()]
+    lines = ['<?xml version="1.0" encoding="UTF-8"?>',
+             '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
+    lines.append(f'  <url><loc>{settings.site_url}/</loc><changefreq>daily</changefreq><priority>1.0</priority></url>')
+    for slug in slugs:
+        lines.append(f'  <url><loc>{settings.site_url}/tour/{slug}</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>')
+    lines.append('</urlset>')
+    return Response("\n".join(lines), media_type="application/xml")
+
+
 @app.get("/api/status")
 async def status():
     _, total = list_tours(settings.db_path, per_page=1)
