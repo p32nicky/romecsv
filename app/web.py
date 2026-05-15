@@ -197,8 +197,12 @@ async def rss_feed():
 async def sitemap():
     from app.db import _get_conn, USE_POSTGRES
     with _get_conn(settings.db_path) as conn:
-        rows = conn.execute("SELECT slug FROM tours ORDER BY first_seen_at DESC").fetchall()
-        slugs = [r["slug"] if USE_POSTGRES else r[0] for r in rows]
+        if USE_POSTGRES:
+            cur = conn.cursor()
+            cur.execute("SELECT slug FROM tours ORDER BY first_seen_at DESC")
+            slugs = [r["slug"] for r in cur.fetchall()]
+        else:
+            slugs = [r[0] for r in conn.execute("SELECT slug FROM tours ORDER BY first_seen_at DESC").fetchall()]
     lines = ['<?xml version="1.0" encoding="UTF-8"?>',
              '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
     lines.append(f'  <url><loc>{settings.site_url}/</loc><changefreq>daily</changefreq><priority>1.0</priority></url>')
