@@ -193,6 +193,12 @@ async def rss_feed():
     return Response(content=xml_str, media_type="application/rss+xml")
 
 
+@app.get("/robots.txt")
+async def robots():
+    content = f"User-agent: *\nAllow: /\nSitemap: {settings.site_url}/sitemap.xml\n"
+    return Response(content, media_type="text/plain")
+
+
 @app.get("/sitemap.xml")
 async def sitemap():
     from app.db import _get_conn, USE_POSTGRES
