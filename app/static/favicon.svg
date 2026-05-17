@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Sky background -->
+  <rect width="64" height="64" rx="12" fill="#1a1a2e"/>
+
+  <!-- Sun/moon glow -->
+  <circle cx="32" cy="18" r="8" fill="#f5c842" opacity="0.9"/>
+
+  <!-- Colosseum silhouette -->
+  <!-- Ground base -->
+  <rect x="6" y="50" width="52" height="4" rx="1" fill="#c8a96e"/>
+
+  <!-- Main outer wall -->
+  <rect x="8" y="34" width="48" height="18" rx="2" fill="#c8a96e"/>
+
+  <!-- Arched windows row 1 (bottom) -->
+  <rect x="12" y="40" width="6" height="9" rx="3" fill="#1a1a2e"/>
+  <rect x="22" y="40" width="6" height="9" rx="3" fill="#1a1a2e"/>
+  <rect x="32" y="40" width="6" height="9" rx="3" fill="#1a1a2e"/>
+  <rect x="42" y="40" width="6" height="9" rx="3" fill="#1a1a2e"/>
+
+  <!-- Second tier -->
+  <rect x="10" y="26" width="44" height="10" rx="1" fill="#b8945a"/>
+
+  <!-- Arched windows row 2 -->
+  <rect x="13" y="28" width="5" height="7" rx="2.5" fill="#1a1a2e"/>
+  <rect x="22" y="28" width="5" height="7" rx="2.5" fill="#1a1a2e"/>
+  <rect x="31" y="28" width="5" height="7" rx="2.5" fill="#1a1a2e"/>
+  <rect x="40" y="28" width="5" height="7" rx="2.5" fill="#1a1a2e"/>
+
+  <!-- Top broken wall with gaps -->
+  <rect x="12" y="21" width="8" height="6" rx="1" fill="#a07840"/>
+  <rect x="24" y="21" width="8" height="6" rx="1" fill="#a07840"/>
+  <rect x="36" y="21" width="8" height="6" rx="1" fill="#a07840"/>
+  <rect x="44" y="22" width="6" height="5" rx="1" fill="#a07840"/>
+</svg>
